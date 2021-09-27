@@ -1,31 +1,84 @@
 <template>
   <div class="home">
-    <div style="height:1px; width:1px; overflow:hidden">
-      <audio src="../assets/mp3/5018.mp3" ref="shakeAudio"></audio>
-      <audio src="../assets/mp3/5012.mp3" ref="shakeResult"></audio>
+    <div class="shake-page" v-if="[STATE.INIT, STATE.SUCCESS].indexOf(shakeState) !== -1">
+      <div style="height:1px;width:1px;overflow:hidden;">
+        <audio controls src="../assets/mp3/5018.mp3" ref="shakeAudio"></audio>
+        <audio controls src="../assets/mp3/5012.mp3" ref="shakeResult"></audio>
+      </div>
+      <div class="main-content">
+        <div class="base-image">
+          <img src="../assets/shake_phone.png" width="229" height="211">
+        </div>
+        <div class="title">
+          Shake it now!
+        </div>
+        <div class="sub-title">
+          What a coincidence! Shake phone to pair with who shaked phone at the same time!
+        </div>
+      </div>
+      <div>
+        <router-link to="/filters">
+          <van-button round block type="info" native-type="submit" class="button-ext">
+            Set Filter
+          </van-button>
+        </router-link>
+      </div>
     </div>
-    <div class="animation">
-      摇一摇:{{shaked}}<br/>
-      震动: {{vibrate}}<br/>
+    <div class="shaking-page" v-if="shakeState === STATE.SEARCHING">
+      <div class="shaking-title">
+        Looking for soulmate…
+      </div>
+      <div class="animation-content">
+        <img src="../assets/shaking.png" width="260" height="250">
+      </div>
+      <div class="shaking-text">
+        Searching…
+      </div>
     </div>
-    <div>
-      <router-link to="/filters">Filters</router-link>
+    <div class="shaking-result-empty" v-if="shakeState === STATE.EMPTY">
+      <div class="empty-title">
+        Hmmm…seems no suitable soulmate, try again?
+      </div>
+      <div class="empty-image">
+        <img src="../assets/search-empty.png" width="160" height="175">
+      </div>
+      <div class="empty-text">
+        Not finding any suitable soulmate, maybe come refreshing later
+      </div>
+      <van-button
+        round
+        block
+        type="info"
+        class="button-ext"
+        @click="shakeState = STATE.INIT"
+      >
+        Refresh
+      </van-button>
     </div>
   </div>
 </template>
 
 <script>
 import Shake from 'shake.js';
+import {
+  Button,
+} from 'vant';
 
 export default {
   name: 'Home',
   data() {
     return {
-      shaked: 'false',
-      vibrate: 'unknown',
+      shakeState: 0,
+      STATE: {
+        INIT: 0,
+        SEARCHING: 1,
+        EMPTY: 2,
+        SUCCESS: 3,
+      },
     };
   },
   components: {
+    [Button.name]: Button,
   },
   mounted() {
     const myShakeEvent = new Shake({
@@ -34,27 +87,90 @@ export default {
     });
     myShakeEvent.start();
     myShakeEvent.hasDeviceMotion = true;
-    window.addEventListener('shake', this.shakeEventDidOccur, false);
+    window.addEventListener('shake', () => {
+      this.shakeEventDidOccur();
+    }, false);
   },
   methods: {
     shakeEventDidOccur() {
-      const audio = this.$refs.shakeAudio;
-      this.shaked = 'shake audio';
-      if (window.navigator.vibrate) {
-        navigator.vibrate([500, 200, 500]);
-        this.vibrate = 'support';
-      } else {
-        this.vibrate = 'not support';
+      const { STATE } = this;
+      if (this.shakeState !== STATE.SEARCHING) {
+        this.shakeState = STATE.SEARCHING;
+        const audio = this.$refs.shakeAudio;
+        if (window.navigator.vibrate) {
+          navigator.vibrate([500, 200, 500]);
+        }
+        audio.play();
       }
-      audio.play();
-      setTimeout(this.shakeResult, 1000);
+      setTimeout(() => {
+        this.shakeResult();
+      }, 1000);
     },
 
     shakeResult() {
-      this.shaked = 'shaked result';
-      const audio = this.$refs.shakeResult;
-      audio.play();
+      const result = Math.floor(Math.random() * 2);
+      const { STATE } = this;
+      if (result > 0) {
+        this.shakeState = STATE.SUCCESS;
+      } else {
+        this.shakeState = STATE.EMPTY;
+      }
+      if (this.shakeState === STATE.SUCCESS) {
+        const audio = this.$refs.shakeResult;
+        audio.play();
+      }
     },
   },
 };
 </script>
+<style>
+.home{
+  width:80%;
+  margin: auto;
+  text-align: center;
+}
+.base-image{
+  margin: 125px auto 18px auto;
+}
+.title{
+  font-size: 18px;
+  margin: 18px 0 10px;
+}
+.sub-title{
+  font-size: 14px;
+  color:#434343;
+}
+.button-ext{
+  font-size: 15px;
+  font-weight: 800;
+}
+.main-content{
+  margin-bottom: 216px;
+}
+
+.shaking-title{
+  text-align: left;
+  font-size: 22px;
+  font-weight: bold;
+  margin: 60px 0 72px;
+}
+.animation-content{
+  text-align:center;
+}
+.shaking-text{
+  margin-top: 42px;
+  font-size: 15px;
+  font-weight: 800;
+}
+.empty-title{
+  margin: 60px 0 87px;
+  text-align: left;
+  font-size: 22px;
+  font-weight: bold;
+}
+.empty-text{
+  color: #434343;
+  font-size: 14px;
+  margin: 22px 0 123px;
+}
+</style>
