@@ -12,14 +12,8 @@
   font-style: normal;
 }
 @font-face {
-  font-family: 'Rubik-Regular';
-  src: url('../../font/Rubik-Regular.ttf');
-  font-weight: normal;
-  font-style: normal;
-}
-@font-face {
-  font-family: 'Rubik-Medium';
-  src: url('../../font/Rubik-Medium.ttf');
+  font-family: 'Roboto-Regular';
+  src: url('../../font/Roboto-Regular.ttf');
   font-weight: normal;
   font-style: normal;
 }
