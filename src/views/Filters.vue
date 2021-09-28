@@ -159,7 +159,7 @@ export default {
       ageRange: '4',
       locate: '2',
       info: null,
-      step: 3,
+      step: 2,
       show: false,
       infoChosen: {
         gender: '',
@@ -440,15 +440,17 @@ export default {
   font-weight: 500;
 }
 
+/* TODO Picker-image-1 */
 .filters .van-action-sheet__content .van-picker-column__item--selected {
-  width: 68px;
+  /* width: 68px;
   color: #FFFFFF;
   background-image: linear-gradient(90deg, #3F6CF3 0%, #A862A8 52%, #FF5969 100%);
-  border-radius: 32.43px;
+  border-radius: 32.43px; */
 }
 
+/* TODO Picker-image-2 */
 .filters .van-action-sheet__content .van-picker__frame {
-  /* height: 30px !important;
+  height: 30px !important;
   width: 68px;
   color: #FFFFFF;
   background-image: linear-gradient(
@@ -456,6 +458,7 @@ export default {
   border-radius: 32.43px;
   margin: 0 auto;
   left: 50%;
-  transform: translate(-50%, -50%); */
+  transform: translate(-50%, -50%);
+  z-index: -1;
 }
 </style>
