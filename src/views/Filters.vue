@@ -159,7 +159,7 @@ export default {
       ageRange: '4',
       locate: '2',
       info: null,
-      step: 3,
+      step: 2,
       show: false,
       infoChosen: {
         gender: '',
