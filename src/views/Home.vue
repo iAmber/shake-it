@@ -7,7 +7,7 @@
       </div>
       <div class="main-content">
         <div class="base-image">
-          <img src="../assets/shake_phone.png" width="229" height="211">
+          <img src="../assets/img/ic_graphic_shake_phone.png" width="229" height="211">
         </div>
         <div class="title">
           Shake it now!
@@ -28,8 +28,10 @@
       <div class="shaking-title">
         Looking for soulmate…
       </div>
-      <div class="animation-content">
-        <img src="../assets/shaking.png" width="260" height="250">
+      <div class="animation-content" >
+        <div ref="animationel" class="animation-content-inner">
+          <img src="../assets/img/ic_h5_graphic_search.png" width="127" height="124">
+        </div>
       </div>
       <div class="shaking-text">
         Searching…
@@ -40,7 +42,7 @@
         Hmmm…seems no suitable soulmate, try again?
       </div>
       <div class="empty-image">
-        <img src="../assets/search-empty.png" width="160" height="175">
+        <img src="../assets/img/ic_h5_graphic_no_noti.png" width="160" height="175">
       </div>
       <div class="empty-text">
         Not finding any suitable soulmate, maybe come refreshing later
@@ -60,9 +62,12 @@
 
 <script>
 import Shake from 'shake.js';
+import lottie from 'lottie-web';
 import {
   Button,
 } from 'vant';
+import anidata from '../assets/shaking';
+// import Conf from '../common/config';
 
 export default {
   name: 'Home',
@@ -80,7 +85,7 @@ export default {
   components: {
     [Button.name]: Button,
   },
-  mounted() {
+  async mounted() {
     const myShakeEvent = new Shake({
       threshold: 12, // optional shake strength threshold
       timeout: 500, // optional, determines the frequency of event generation
@@ -90,6 +95,14 @@ export default {
     window.addEventListener('shake', () => {
       this.shakeEventDidOccur();
     }, false);
+    this.lottie = lottie.loadAnimation({
+      container: this.$refs.animationel,
+      renderer: 'svg',
+      loop: true,
+      animationData: anidata,
+    });
+    console.log(anidata);
+    this.lottie.play();
   },
   methods: {
     shakeEventDidOccur() {
@@ -104,17 +117,17 @@ export default {
       }
       setTimeout(() => {
         this.shakeResult();
-      }, 1000);
+      }, 5000);
     },
 
     shakeResult() {
-      const result = Math.floor(Math.random() * 2);
+      // const result = Math.floor(Math.random() * 2);
       const { STATE } = this;
-      if (result > 0) {
-        this.shakeState = STATE.SUCCESS;
-      } else {
-        this.shakeState = STATE.EMPTY;
-      }
+      // if (result > 0) {
+      // this.shakeState = STATE.SUCCESS;
+      // } else {
+      this.shakeState = STATE.EMPTY;
+      // }
       if (this.shakeState === STATE.SUCCESS) {
         const audio = this.$refs.shakeResult;
         audio.play();
@@ -159,6 +172,18 @@ export default {
 }
 .animation-content{
   text-align:center;
+}
+.animation-content-inner{
+  width:260px;
+  height:250px;
+  margin: 0 auto;
+  position:relative;
+}
+.animation-content img{
+  position:absolute;
+  top:86px;
+  left:90px;
+  z-index: 1;
 }
 .shaking-text{
   margin-top: 42px;
