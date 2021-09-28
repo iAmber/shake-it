@@ -130,7 +130,9 @@ export default {
   text-align: center;
 }
 .base-image{
-  margin: 125px auto 18px auto;
+  margin-top: 105px;
+  margin-top: 13vh;
+  margin-bottom: 18px;
 }
 .title{
   font-size: 18px;
@@ -145,7 +147,8 @@ export default {
   font-weight: 800;
 }
 .main-content{
-  margin-bottom: 216px;
+  margin-bottom: 106px;
+  margin-bottom: 20vh;
 }
 
 .shaking-title{
