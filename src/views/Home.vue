@@ -17,7 +17,7 @@
         </div>
       </div>
       <div>
-        <router-link to="/filters">
+        <router-link :to="`/filters?mobile=${mobile}`">
           <van-button round block type="info" native-type="submit" class="button-ext">
             Set Filter
           </van-button>
@@ -64,10 +64,11 @@
 import Shake from 'shake.js';
 import lottie from 'lottie-web';
 import {
-  Button,
+  Button, Toast,
 } from 'vant';
+import axios from 'axios';
 import anidata from '../assets/shaking';
-// import Conf from '../common/config';
+import Conf from '../common/config';
 
 export default {
   name: 'Home',
@@ -80,10 +81,28 @@ export default {
         EMPTY: 2,
         SUCCESS: 3,
       },
+      configData: {
+        enableShakeShake: false,
+        shakeResultDelay: 5000,
+        hasLocation: false,
+        lastProfileUpdateTime: 0,
+      },
+      ageRangeMap: {
+        1: [0, 14],
+        2: [15, 22],
+        3: [23, 100],
+        4: [0, 100],
+      },
     };
   },
   components: {
     [Button.name]: Button,
+  },
+  computed: {
+    mobile() {
+      const { mobile } = this.$route.query;
+      return mobile ? String(mobile).replace(/^ /, '+') : '';
+    },
   },
   async mounted() {
     const myShakeEvent = new Shake({
@@ -92,8 +111,8 @@ export default {
     });
     myShakeEvent.start();
     myShakeEvent.hasDeviceMotion = true;
-    window.addEventListener('shake', () => {
-      this.shakeEventDidOccur();
+    window.addEventListener('shake', async () => {
+      await this.shakeEventDidOccur();
     }, false);
 
     this.lottie = lottie.loadAnimation({
@@ -102,37 +121,122 @@ export default {
       loop: true,
       animationData: anidata,
     });
+    // await this.getConfig();
+    // TODO delete;
+    this.shakeEventDidOccur();
   },
   methods: {
-    shakeEventDidOccur() {
+    transferAgeToRange(value) {
+      const data = this.ageRangeMap[value] || this.ageRangeMap['4'];
+      return { startAge: data[0], endAge: data[1] };
+    },
+    async getConfig() {
+      const params = {
+        mobile: this.mobile,
+        androidId: '',
+        appCode: 'h5',
+        version: '',
+      };
+      const { data, status } = await axios.post(`${Conf.BASE_URL}/shake.gateway.ShakeGatewayService/GetConfig`, params);
+      if (status === 200) {
+        this.configData = { ...data };
+      }
+    },
+    getFilters() {
+      const config = sessionStorage.getItem('filterSetting');
+      let result = {
+        gender: 3,
+        ageRange: 4,
+        locate: 2,
+      };
+      if (!config) {
+        try {
+          const parseData = JSON.parse(config);
+          result = { ...parseData };
+        } catch (e) {
+          console.log(e);
+        }
+      }
+      return result;
+    },
+    async shakeit() {
+      const { gender, ageRange, locate } = this.getFilters();
+      const { startAge, endAge } = this.transferAgeToRange(ageRange);
+      const params = {
+        mobile: this.mobile,
+        app_code: 'fm',
+        filter_info: {
+          gender,
+          start_age: startAge,
+          end_age: endAge,
+          enable_location: locate === 1,
+        },
+      };
+      const { data, status } = await axios.post(`${Conf.BASE_URL}/shake.gateway.ShakeServiceV2/StartMatch`, params);
+      if (status === 200 && data.message === 'ok') {
+        return true;
+      }
+      return false;
+    },
+    async shakeEventDidOccur() {
       const { STATE } = this;
       if (this.shakeState !== STATE.SEARCHING) {
         this.shakeState = STATE.SEARCHING;
+        // 播放音频
         const audio = this.$refs.shakeAudio;
-        if (window.navigator.vibrate) {
-          navigator.vibrate([500, 200, 500]);
-        }
         audio.play();
+        // 播放动画
         this.lottie.play();
+        // 请求接口
+        let result = false;
+        try {
+          result = await this.shakeit();
+        } catch (e) {
+          console.log(e);
+          result = false;
+        }
+        if (result) {
+          setTimeout(async () => {
+            const mobile = await this.checkResult();
+            if (mobile) {
+              // 播放音效和震动， 500ms之后唤起native;
+              this.hasResult();
+              setTimeout(() => {
+                this.callNative(mobile);
+                this.lottie.pause();
+                this.shakeState = STATE.INIT;
+              }, 500);
+            } else {
+              this.lottie.pause();
+              this.shakeState = STATE.EMPTY;
+            }
+          }, 5000);
+        } else {
+          this.lottie.pause();
+          this.shakeState = STATE.INIT;
+          Toast('Error, try again!');
+        }
       }
-      setTimeout(() => {
-        this.shakeResult();
-        this.lottie.pause();
-      }, 5000);
     },
-
-    shakeResult() {
-      // const result = Math.floor(Math.random() * 2);
-      const { STATE } = this;
-      // if (result > 0) {
-      // this.shakeState = STATE.SUCCESS;
-      // } else {
-      this.shakeState = STATE.EMPTY;
-      // }
-      // if (this.shakeState === STATE.SUCCESS) {
+    async checkResult() {
+      const params = {
+        mobile: this.mobile,
+      };
+      const { data, status } = await axios.post(`${Conf.BASE_URL}/shake.gateway.ShakeServiceV2/CheckMatchResult`, params);
+      if (status === 200 && data.mobile) {
+        return data.mobile;
+      }
+      return false;
+    },
+    callNative(mobile) {
+      window.JsProxy.postEvent('go_to_talk', escape(mobile));
+    },
+    hasResult() {
       const audio = this.$refs.shakeResult;
       audio.play();
-      // }
+      if (window.navigator.vibrate) {
+        navigator.vibrate([200, 100, 200]);
+      }
     },
   },
 };

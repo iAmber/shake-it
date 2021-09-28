@@ -119,6 +119,8 @@
 import {
   Form, Field, Button, Switch, RadioGroup, Radio, ActionSheet, Picker, Toast,
 } from 'vant';
+import axios from 'axios';
+import Conf from '../common/config';
 
 const GENDER_FILTER_LIST = {
   1: 'Male',
@@ -176,14 +178,37 @@ export default {
         latitude: '',
         longitude: '',
       },
+      configData: {
+        enableShakeShake: false,
+        shakeResultDelay: 5000,
+        hasLocation: false,
+        lastProfileUpdateTime: 0,
+      },
     };
+  },
+  computed: {
+    mobile() {
+      const { mobile } = this.$route.query;
+      return mobile ? String(mobile).replace(/^ /, '+') : '';
+    },
   },
   mounted() {
     this.AGE_CHOOSE_LIST = this.initAgeChooseList();
     this.initFilterSetting();
-    this.getUserInfo();
   },
   methods: {
+    async getConfig() {
+      const params = {
+        mobile: this.mobile,
+        androidId: '',
+        appCode: 'h5',
+        version: '',
+      };
+      const { data, status } = await axios.post(`${Conf.BASE_URL}/shake.gateway.ShakeGatewayService/GetConfig`, params);
+      if (status === 200) {
+        this.configData = { ...data };
+      }
+    },
     initAgeChooseList() {
       let i = 1;
       const res = [];
@@ -205,28 +230,30 @@ export default {
       this.ageRange = ageRange;
       this.locate = locate;
     },
-    getUserInfo() {
-
-    },
     onSubmit() {
-      const { gender, ageRange, locate } = this;
-      window.sessionStorage.setItem('filterSetting', JSON.stringify({
-        gender,
-        ageRange,
-        locate,
-      }));
-      this.$router.go(-1);
-    },
-    onCancel() {
-      this.$router.push('/');
-    },
-    preCheck() {
-      if (!this.info) {
-        this.show = true;
+      if (this.preCheck()) {
+        const { gender, ageRange, locate } = this;
+        window.sessionStorage.setItem('filterSetting', JSON.stringify({
+          gender,
+          ageRange,
+          locate,
+        }));
+        this.$router.go(-1);
       }
     },
+    onCancel() {
+      this.$router.push(`/?mobile=${this.mobile}`);
+    },
+    preCheck() {
+      // 未更新过userInfo
+      if (this.configData.lastProfileUpdateTime === 0) {
+        this.show = true;
+        return false;
+      }
+      return true;
+    },
     onLocateClick() {
-      if (!this.info) {
+      if (!this.configData.hasLocation) {
         this.show = true;
       } else {
         if (!navigator.geolocation) {
@@ -235,7 +262,7 @@ export default {
         }
         if (+this.locate === 1) { // Yes
           // if info.location exsit, do nothing
-          if (this.info.location) return;
+          if (this.configData.hasLocation) return;
           // get geolocation
           this.getGeoLocation((position) => {
             this.position = {
@@ -247,10 +274,25 @@ export default {
         }
       }
     },
-    getGeoLocation(success) {
+    async getGeoLocation(success) {
       navigator.geolocation.getCurrentPosition(success, (e) => {
         Toast(e.message);
       });
+      /*
+      return new Promise((resolve) => {
+        navigator.geolocation.getCurrentPosition((position) => {
+          resolve({
+            status: 0,
+            data: position.coords.longitude,
+          });
+        }, (e) => {
+          Toast(e.message);
+          resolve({
+            status: 1,
+            data: {},
+          });
+        });
+      }); */
     },
     saveGender() {
       this.step += 1;
@@ -262,7 +304,7 @@ export default {
     },
     changeInfoLocate() {
       this.infoChosen.locate = !this.infoChosen.locate;
-      if (this.infoChosen.locate) {
+      if (!this.infoChosen.locate) {
         // get geolocation
         this.getGeoLocation((position) => {
           this.infoChosen.latitude = position.coords.latitude;
@@ -270,8 +312,22 @@ export default {
         });
       }
     },
-    saveInfo() {
-      // TODO save and update info
+    async saveInfo() {
+      const [locale, countryCode] = navigator.language;
+      const params = {
+        mobile: this.mobile,
+        locale,
+        country_code: countryCode,
+        ...this.infoChosen,
+      };
+      // TODO delete
+      this.show = false;
+      const { data, status } = await axios.post(`${Conf.BASE_URL} /shake.gateway.ShakeGatewayService/UploadProfile`, params);
+      if (status === 200 && data.message === 'success') {
+        // 更新config;
+        await this.getConfig();
+      }
+      this.show = false;
     },
   },
 };
