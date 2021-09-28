@@ -105,7 +105,8 @@
             </div>
             <img
               class="locate_switch"
-              :src="locate === 1 ? require('../assets/img/ic_settings_switch_on.png') :
+              @click="changeInfoLocate"
+              :src="infoChosen.locate ? require('../assets/img/ic_settings_switch_on.png') :
                require('../assets/img/ic_settings_switch_off.png')">
           </div>
         </div>
@@ -165,19 +166,22 @@ export default {
       ageRange: '4',
       locate: '2',
       position: {},
-      info: {},
-      step: 3,
-      show: false, // TODO
+      info: null,
+      step: 1,
+      show: false,
       infoChosen: {
         gender: '',
         age: '',
-        isLocate: false,
+        locate: false,
+        latitude: '',
+        longitude: '',
       },
     };
   },
   mounted() {
     this.AGE_CHOOSE_LIST = this.initAgeChooseList();
     this.initFilterSetting();
+    this.getUserInfo();
   },
   methods: {
     initAgeChooseList() {
@@ -201,6 +205,9 @@ export default {
       this.ageRange = ageRange;
       this.locate = locate;
     },
+    getUserInfo() {
+
+    },
     onSubmit() {
       const { gender, ageRange, locate } = this;
       window.sessionStorage.setItem('filterSetting', JSON.stringify({
@@ -215,7 +222,6 @@ export default {
     },
     preCheck() {
       if (!this.info) {
-        console.log('empty info');
         this.show = true;
       }
     },
@@ -231,17 +237,20 @@ export default {
           // if info.location exsit, do nothing
           if (this.info.location) return;
           // get geolocation
-          navigator.geolocation.getCurrentPosition((position) => {
+          this.getGeoLocation((position) => {
             this.position = {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
             };
             // TODO update userInfo
-          }, (e) => {
-            console.log(e.message);
           });
         }
       }
+    },
+    getGeoLocation(success) {
+      navigator.geolocation.getCurrentPosition(success, (e) => {
+        console.log(e.message);
+      });
     },
     saveGender() {
       this.step += 1;
@@ -251,8 +260,17 @@ export default {
       this.infoChosen.age = age;
       this.step += 1;
     },
+    changeInfoLocate() {
+      this.infoChosen.locate = !this.infoChosen.locate;
+      if (this.infoChosen.locate) {
+        // get geolocation
+        this.getGeoLocation((position) => {
+          this.infoChosen.latitude = position.coords.latitude;
+          this.infoChosen.longitude = position.coords.longitude;
+        });
+      }
+    },
     saveInfo() {
-      this.infoChosen.location = '';
       // TODO save and update info
     },
   },
