@@ -41,17 +41,17 @@
         <van-radio-group v-model="locate" direction="horizontal">
           <van-radio
             v-for="(value, key) of LOCATE_FILTER_LIST"
-            :name=key :key="key" @click="preCheck"
+            :name=key
+            :key="key"
             :class="locate === key ? 'checked': ''"
+            @click="onLocateClick"
           >
             {{ value }}
           </van-radio>
-
         </van-radio-group>
       </div>
-
       <div class="btns">
-        <van-button class="cancel" round block type="info" native-type="submit">Cancel</van-button>
+        <van-button class="cancel" round block type="info" @click="onCancel">Cancel</van-button>
         <van-button class="ok" round block type="info" native-type="submit">OK</van-button>
       </div>
     </van-form>
@@ -98,10 +98,15 @@
       </div>
       <div v-if="step === 3" class="content">
         <div class="content_center">
-          <img class="location_img" src="../assets/img/ic_h5_graphic_location_permission.png" />
-          <div>
-            <div class="location_desc">
-              Access your location permission to check your nearby story</div>
+          <img class="locate_img" src="../assets/img/ic_h5_graphic_location_permission.png" />
+          <div class="locate_desc">
+            <div class="text">
+              Access your location permission to check your nearby story
+            </div>
+            <img
+              class="locate_switch"
+              :src="locate === 1 ? require('../assets/img/ic_settings_switch_on.png') :
+               require('../assets/img/ic_settings_switch_off.png')">
           </div>
         </div>
         <van-button round block type="info" @click="saveInfo">DONE</van-button>
@@ -111,7 +116,7 @@
 </template>
 <script>
 import {
-  Form, Field, Button, Switch, RadioGroup, Radio, ActionSheet, Picker,
+  Form, Field, Button, Switch, RadioGroup, Radio, ActionSheet, Picker, Toast,
 } from 'vant';
 
 const GENDER_FILTER_LIST = {
@@ -147,6 +152,7 @@ export default {
     [Radio.name]: Radio,
     [ActionSheet.name]: ActionSheet,
     [Picker.name]: Picker,
+    [Toast.name]: Toast,
   },
   data() {
     return {
@@ -158,9 +164,10 @@ export default {
       gender: '3', // default all
       ageRange: '4',
       locate: '2',
-      info: null,
-      step: 2,
-      show: false,
+      position: {},
+      info: {},
+      step: 3,
+      show: false, // TODO
       infoChosen: {
         gender: '',
         age: '',
@@ -170,6 +177,7 @@ export default {
   },
   mounted() {
     this.AGE_CHOOSE_LIST = this.initAgeChooseList();
+    this.initFilterSetting();
   },
   methods: {
     initAgeChooseList() {
@@ -185,8 +193,25 @@ export default {
       }
       return res;
     },
-    onSubmit(values) {
-      console.log('submit', values);
+    initFilterSetting() {
+      const config = sessionStorage.getItem('filterSetting');
+      if (!config) return;
+      const { gender, ageRange, locate } = JSON.parse(config);
+      this.gender = gender;
+      this.ageRange = ageRange;
+      this.locate = locate;
+    },
+    onSubmit() {
+      const { gender, ageRange, locate } = this;
+      window.sessionStorage.setItem('filterSetting', JSON.stringify({
+        gender,
+        ageRange,
+        locate,
+      }));
+      this.$router.go(-1);
+    },
+    onCancel() {
+      this.$router.push('/');
     },
     preCheck() {
       if (!this.info) {
@@ -194,12 +219,35 @@ export default {
         this.show = true;
       }
     },
+    onLocateClick() {
+      if (!this.info) {
+        this.show = true;
+      } else {
+        if (!navigator.geolocation) {
+          console.log('Geolocation is not supported by your browser');
+          return;
+        }
+        if (+this.locate === 1) { // Yes
+          // if info.location exsit, do nothing
+          if (this.info.location) return;
+          // get geolocation
+          navigator.geolocation.getCurrentPosition((position) => {
+            this.position = {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            };
+            // TODO update userInfo
+          }, (e) => {
+            console.log(e.message);
+          });
+        }
+      }
+    },
     saveGender() {
       this.step += 1;
     },
     saveAge() {
       const age = this.$refs.agePicker.getValues()[0];
-      console.log('age', age);
       this.infoChosen.age = age;
       this.step += 1;
     },
@@ -440,25 +488,38 @@ export default {
   font-weight: 500;
 }
 
-/* TODO Picker-image-1 */
 .filters .van-action-sheet__content .van-picker-column__item--selected {
-  /* width: 68px;
   color: #FFFFFF;
   background-image: linear-gradient(90deg, #3F6CF3 0%, #A862A8 52%, #FF5969 100%);
-  border-radius: 32.43px; */
+  border-radius: 32.43px;
 }
 
-/* TODO Picker-image-2 */
-.filters .van-action-sheet__content .van-picker__frame {
-  height: 30px !important;
-  width: 68px;
-  color: #FFFFFF;
-  background-image: linear-gradient(
-90deg, #3F6CF3 0%, #A862A8 52%, #FF5969 100%);
-  border-radius: 32.43px;
-  margin: 0 auto;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: -1;
+.filters .van-action-sheet__content .locate_img {
+  width: 110px;
+  height: 89px;
 }
+
+.filters .van-action-sheet__content .locate_desc {
+  margin-top: 11px;
+  padding: 0 37px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.filters .van-action-sheet__content .locate_desc .text {
+  font-family: Roboto-Regular;
+  font-size: 12px;
+  color: #434343;
+  letter-spacing: 0;
+  font-weight: 400;
+  margin-right: 57px;
+}
+
+.filters .van-action-sheet__content .locate_switch {
+  width: 40px;
+  height: 24px;
+  cursor: pointer;
+}
+
 </style>
