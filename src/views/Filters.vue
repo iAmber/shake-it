@@ -249,7 +249,7 @@ export default {
     },
     getGeoLocation(success) {
       navigator.geolocation.getCurrentPosition(success, (e) => {
-        console.log(e.message);
+        Toast(e.message);
       });
     },
     saveGender() {
