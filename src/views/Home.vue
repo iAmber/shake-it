@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div class="shake-page" v-if="[STATE.INIT, STATE.SUCCESS].indexOf(shakeState) !== -1">
+    <div class="shake-page" v-show="[STATE.INIT, STATE.SUCCESS].indexOf(shakeState) !== -1">
       <div style="height:1px;width:1px;overflow:hidden;">
         <audio controls src="../assets/mp3/5018.mp3" ref="shakeAudio"></audio>
         <audio controls src="../assets/mp3/5012.mp3" ref="shakeResult"></audio>
@@ -24,7 +24,7 @@
         </router-link>
       </div>
     </div>
-    <div class="shaking-page" v-if="shakeState === STATE.SEARCHING">
+    <div class="shaking-page" v-show="shakeState === STATE.SEARCHING">
       <div class="shaking-title">
         Looking for soulmate…
       </div>
@@ -37,7 +37,7 @@
         Searching…
       </div>
     </div>
-    <div class="shaking-result-empty" v-if="shakeState === STATE.EMPTY">
+    <div class="shaking-result-empty" v-show="shakeState === STATE.EMPTY">
       <div class="empty-title">
         Hmmm…seems no suitable soulmate, try again?
       </div>
@@ -95,14 +95,13 @@ export default {
     window.addEventListener('shake', () => {
       this.shakeEventDidOccur();
     }, false);
+
     this.lottie = lottie.loadAnimation({
       container: this.$refs.animationel,
       renderer: 'svg',
       loop: true,
       animationData: anidata,
     });
-    console.log(anidata);
-    this.lottie.play();
   },
   methods: {
     shakeEventDidOccur() {
@@ -114,9 +113,11 @@ export default {
           navigator.vibrate([500, 200, 500]);
         }
         audio.play();
+        this.lottie.play();
       }
       setTimeout(() => {
         this.shakeResult();
+        this.lottie.pause();
       }, 5000);
     },
 
@@ -128,10 +129,10 @@ export default {
       // } else {
       this.shakeState = STATE.EMPTY;
       // }
-      if (this.shakeState === STATE.SUCCESS) {
-        const audio = this.$refs.shakeResult;
-        audio.play();
-      }
+      // if (this.shakeState === STATE.SUCCESS) {
+      const audio = this.$refs.shakeResult;
+      audio.play();
+      // }
     },
   },
 };
