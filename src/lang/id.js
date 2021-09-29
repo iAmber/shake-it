@@ -33,4 +33,5 @@ export default {
   permission: 'Aktifkan izin lokasi',
   Unisex: 'Unisex',
   Enable: 'Aktifkan shake surprise',
+  DONE: 'SELESAI',
 };

@@ -33,4 +33,5 @@ export default {
   permission: 'Ativar permissão de localização',
   Unisex: 'Unissex',
   Enable: 'Ativar Shake Surprise',
+  DONE: 'feito',
 };
