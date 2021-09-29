@@ -278,6 +278,9 @@ export default {
           } else {
             this.locationFail = true;
             Toast(result.message);
+            setTimeout(() => {
+              this.locate = '2';
+            }, 1000);
           }
         }
       }
@@ -350,7 +353,7 @@ export default {
           locale,
           country_code: countryCode || locale,
           gender: Number(gender),
-          age: Number(age),
+          age: Number(age) || 36,
         },
       };
       if (info.latitude && info.longitude) {
