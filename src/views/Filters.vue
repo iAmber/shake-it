@@ -123,23 +123,6 @@ import {
 import axios from 'axios';
 import Conf from '../common/config';
 
-const GENDER_FILTER_LIST = {
-  1: this.$t('Male'),
-  2: this.$t('Female'),
-  3: this.$t('Unisex'),
-};
-
-const AGE_FILTER_LIST = {
-  1: '<14',
-  2: '14-22',
-  3: '22+',
-  4: 'All',
-};
-const LOCATE_FILTER_LIST = {
-  1: this.$t('Yes'),
-  2: this.$t('Nope'),
-};
-
 export default {
   components: {
     [Form.name]: Form,
@@ -154,9 +137,21 @@ export default {
   },
   data() {
     return {
-      GENDER_FILTER_LIST,
-      AGE_FILTER_LIST,
-      LOCATE_FILTER_LIST,
+      GENDER_FILTER_LIST: {
+        1: this.$t('Male'),
+        2: this.$t('Female'),
+        3: this.$t('Unisex'),
+      },
+      AGE_FILTER_LIST: {
+        1: '<14',
+        2: '14-22',
+        3: '22+',
+        4: 'All',
+      },
+      LOCATE_FILTER_LIST: {
+        1: this.$t('Yes'),
+        2: this.$t('Nope'),
+      },
       AGE_CHOOSE_LIST: [],
       gender: '3', // default all
       ageRange: '4',
