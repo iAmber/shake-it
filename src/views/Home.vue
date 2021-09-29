@@ -147,7 +147,7 @@ export default {
         ageRange: 4,
         locate: 2,
       };
-      if (!config) {
+      if (config) {
         try {
           const parseData = JSON.parse(config);
           result = { ...parseData };
