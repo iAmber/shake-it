@@ -90,6 +90,7 @@
             title="标题"
             :show-toolbar="false"
             :columns="AGE_CHOOSE_LIST"
+            default-index="17"
             item-height="28"
             ref="agePicker"
           />
@@ -185,6 +186,7 @@ export default {
         lastProfileUpdateTime: 0,
       },
       saveLocationInfo: false,
+      locationFail: false, // 定位错误后 可以增加提示。
     };
   },
   computed: {
@@ -254,8 +256,8 @@ export default {
       }
       return true;
     },
-    onLocateClick() {
-      if (!this.configData.hasLocation || !this.preCheck()) {
+    async onLocateClick() {
+      if (!this.preCheck()) {
         this.show = true;
       } else {
         if (!navigator.geolocation) {
@@ -266,13 +268,17 @@ export default {
           // if info.location exsit, do nothing
           if (this.configData.hasLocation || this.saveLocationInfo) return;
           // get geolocation
-          this.getGeoLocation((position) => {
+          const result = await this.getGeoLocation();
+          if (result.status) {
             this.position = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
+              latitude: result.data.latitude,
+              longitude: result.data.longitude,
             };
             this.updateLocationInfo(this.position);
-          });
+          } else {
+            this.locationFail = true;
+            Toast(result.message);
+          }
         }
       }
     },
@@ -291,25 +297,21 @@ export default {
       }
       this.saveLocationInfo = false;
     },
-    async getGeoLocation(success) {
-      navigator.geolocation.getCurrentPosition(success, (e) => {
-        Toast(e.message);
-      });
-      /*
+    async getGeoLocation() {
       return new Promise((resolve) => {
         navigator.geolocation.getCurrentPosition((position) => {
           resolve({
-            status: 0,
+            status: true,
             data: position.coords.longitude,
           });
         }, (e) => {
-          Toast(e.message);
           resolve({
-            status: 1,
+            status: false,
+            message: e.message,
             data: {},
           });
         });
-      }); */
+      });
     },
     saveGender() {
       this.step += 1;
@@ -319,14 +321,22 @@ export default {
       this.infoChosen.age = age;
       this.step += 1;
     },
-    changeInfoLocate() {
-      this.infoChosen.locate = !this.infoChosen.locate;
+    async changeInfoLocate() {
       if (!this.infoChosen.locate) {
         // get geolocation
-        this.getGeoLocation((position) => {
-          this.infoChosen.latitude = position.coords.latitude;
-          this.infoChosen.longitude = position.coords.longitude;
-        });
+        const result = await this.getGeoLocation();
+        if (result.status) {
+          // 定位成功后开启switch;
+          this.infoChosen.locate = !this.infoChosen.locate;
+          this.position = {
+            latitude: result.data.latitude,
+            longitude: result.data.longitude,
+          };
+          this.updateLocationInfo(this.position);
+        } else {
+          this.locationFail = true;
+          Toast(result.message);
+        }
       }
     },
     async saveInfo() {
