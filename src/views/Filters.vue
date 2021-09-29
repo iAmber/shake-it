@@ -126,7 +126,7 @@ import Conf from '../common/config';
 const GENDER_FILTER_LIST = {
   1: 'Male',
   2: 'Female',
-  3: 'All',
+  3: 'Unisex',
 };
 
 const AGE_FILTER_LIST = {
