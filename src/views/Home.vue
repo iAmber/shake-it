@@ -121,9 +121,7 @@ export default {
       loop: true,
       animationData: anidata,
     });
-    // await this.getConfig();
-    // TODO delete;
-    this.shakeEventDidOccur();
+    await this.getConfig();
   },
   methods: {
     transferAgeToRange(value) {
@@ -210,7 +208,7 @@ export default {
               this.lottie.pause();
               this.shakeState = STATE.EMPTY;
             }
-          }, 5000);
+          }, this.configData.shakeResultDelay || 5000);
         } else {
           this.lottie.pause();
           this.shakeState = STATE.INIT;
@@ -229,7 +227,11 @@ export default {
       return false;
     },
     callNative(mobile) {
-      window.JsProxy.postEvent('go_to_talk', escape(mobile));
+      if (window.JsProxy) {
+        window.JsProxy.postEvent('go_to_talk', escape(mobile));
+      } else {
+        Toast(`success info: ${mobile}`);
+      }
     },
     hasResult() {
       const audio = this.$refs.shakeResult;

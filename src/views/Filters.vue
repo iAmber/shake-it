@@ -184,6 +184,7 @@ export default {
         hasLocation: false,
         lastProfileUpdateTime: 0,
       },
+      saveLocationInfo: false,
     };
   },
   computed: {
@@ -192,8 +193,9 @@ export default {
       return mobile ? String(mobile).replace(/^ /, '+') : '';
     },
   },
-  mounted() {
+  async mounted() {
     this.AGE_CHOOSE_LIST = this.initAgeChooseList();
+    await this.getConfig();
     this.initFilterSetting();
   },
   methods: {
@@ -253,7 +255,7 @@ export default {
       return true;
     },
     onLocateClick() {
-      if (!this.configData.hasLocation) {
+      if (!this.configData.hasLocation || !this.preCheck()) {
         this.show = true;
       } else {
         if (!navigator.geolocation) {
@@ -262,17 +264,32 @@ export default {
         }
         if (+this.locate === 1) { // Yes
           // if info.location exsit, do nothing
-          if (this.configData.hasLocation) return;
+          if (this.configData.hasLocation || this.saveLocationInfo) return;
           // get geolocation
           this.getGeoLocation((position) => {
             this.position = {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
             };
-            // TODO update userInfo
+            this.updateLocationInfo(this.position);
           });
         }
       }
+    },
+    async updateLocationInfo(position) {
+      this.saveLocationInfo = true;
+      const params = {
+        user_info: {
+          mobile: this.mobile,
+          longitude: Number(position.longitude),
+          latitude: Number(position.latitude),
+        },
+      };
+      const { data, status } = await axios.post(`${Conf.BASE_URL}/shake.gateway.ShakeGatewayService/UploadCoordinate`, params);
+      if (status === 200 && data.message === 'success') {
+        await this.getConfig();
+      }
+      this.saveLocationInfo = false;
     },
     async getGeoLocation(success) {
       navigator.geolocation.getCurrentPosition(success, (e) => {
@@ -313,16 +330,26 @@ export default {
       }
     },
     async saveInfo() {
-      const [locale, countryCode] = navigator.language;
+      const [locale, countryCode] = navigator.language.split('-');
+      const {
+        gender, age, ...info
+      } = this.infoChosen;
       const params = {
-        mobile: this.mobile,
-        locale,
-        country_code: countryCode,
-        ...this.infoChosen,
+        user_info: {
+          mobile: this.mobile,
+          locale,
+          country_code: countryCode || locale,
+          gender: Number(gender),
+          age: Number(age),
+        },
       };
+      if (info.latitude && info.longitude) {
+        params.user_info.latitude = Number(info.latitude);
+        params.user_info.longitude = Number(info.longitude);
+      }
       // TODO delete
       this.show = false;
-      const { data, status } = await axios.post(`${Conf.BASE_URL} /shake.gateway.ShakeGatewayService/UploadProfile`, params);
+      const { data, status } = await axios.post(`${Conf.BASE_URL}/shake.gateway.ShakeGatewayService/UploadProfile`, params);
       if (status === 200 && data.message === 'success') {
         // 更新config;
         await this.getConfig();
