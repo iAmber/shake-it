@@ -10,23 +10,23 @@
           <img src="../assets/img/ic_graphic_shake_phone.png" width="229" height="211">
         </div>
         <div class="title">
-          Shake it now!
+          {{ $t('title') }}
         </div>
         <div class="sub-title">
-          What a coincidence! Shake phone to pair with who shaked phone at the same time!
+          {{ $t('desc') }}
         </div>
       </div>
       <div>
         <router-link :to="`/filters?mobile=${mobile}`">
           <van-button round block type="info" native-type="submit" class="button-ext">
-            Set Filter
+            {{ $t('tap') }}
           </van-button>
         </router-link>
       </div>
     </div>
     <div class="shaking-page" v-show="shakeState === STATE.SEARCHING">
       <div class="shaking-title">
-        Looking for soulmate…
+        {{ $t('soulmate') }}
       </div>
       <div class="animation-content" >
         <div ref="animationel" class="animation-content-inner">
@@ -34,18 +34,18 @@
         </div>
       </div>
       <div class="shaking-text">
-        Searching…
+        {{ $t('Searching') }}
       </div>
     </div>
     <div class="shaking-result-empty" v-show="shakeState === STATE.EMPTY">
       <div class="empty-title">
-        Hmmm…seems no suitable soulmate, try again?
+        {{ $t('again') }}
       </div>
       <div class="empty-image">
         <img src="../assets/img/ic_h5_graphic_no_noti.png" width="160" height="175">
       </div>
       <div class="empty-text">
-        Not finding any suitable soulmate, maybe come refreshing later
+        {{ $t('Unfind') }}
       </div>
       <van-button
         round
@@ -54,7 +54,7 @@
         class="button-ext"
         @click="shakeState = STATE.INIT"
       >
-        Refresh
+        {{ $t('Refresh') }}
       </van-button>
     </div>
   </div>

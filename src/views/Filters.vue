@@ -1,8 +1,8 @@
 <template>
   <div class="filters">
-    <div class="filters_title">Chat Filters</div>
+    <div class="filters_title">{{ $t('filterTitle') }}</div>
     <van-form @submit="onSubmit">
-      <div class="filters_label">Show me with shake</div>
+      <div class="filters_label">{{ $t('shake') }}</div>
       <div class="filters_container gender">
         <img class="filters_container_icon" src="../assets/img/ic_gender.png" />
         <div class="filters_container_slide" />
@@ -21,7 +21,7 @@
           </van-radio>
         </van-radio-group>
       </div>
-      <div class="filters_label">Select pair age</div>
+      <div class="filters_label">{{ $t('age') }}</div>
       <div class="filters_container age_range">
         <img class="filters_container_icon" src="../assets/img/ic_age.png" />
         <div class="filters_container_slide" />
@@ -33,10 +33,9 @@
           >
             {{ value }}
           </van-radio>
-
         </van-radio-group>
       </div>
-      <div class="filters_label">Pair by location</div>
+      <div class="filters_label">{{ $t('location') }}</div>
       <div class="filters_container locate">
         <van-radio-group v-model="locate" direction="horizontal">
           <van-radio
@@ -51,20 +50,21 @@
         </van-radio-group>
       </div>
       <div class="btns">
-        <van-button class="cancel" round block type="info" @click="onCancel">Cancel</van-button>
-        <van-button class="ok" round block type="info" native-type="submit">OK</van-button>
+        <van-button class="cancel" round block type="info" @click="onCancel">
+          {{ $t('Cancel') }}
+        </van-button>
+        <van-button class="ok" round block type="info" native-type="submit">
+          {{ $t('Okay') }}
+        </van-button>
       </div>
     </van-form>
     <van-action-sheet
       v-model="show" title="Unlock filters" :closeable="false"
-      description="Fill in your info to get precise pair result. Once submitted,
-      it can‘t be modified."
-      class=""
+      :description="$t('tip')"
     >
       <div v-if="step === 1" class="content">
         <div class="content_center">
-          <div class="content_title">Select your gender</div>
-
+          <div class="content_title">{{ $t('gender') }}</div>
           <div class="filters_container gender">
             <img class="filters_container_icon" src="../assets/img/ic_gender.png" />
             <div class="filters_container_slide" />
@@ -81,11 +81,11 @@
         </div>
         <van-button
           :disabled="!infoChosen.gender" round block type="info" @click="saveGender"
-        >Next</van-button>
+        >{{ $t('Next') }}</van-button>
       </div>
       <div v-if="step === 2" class="content">
         <div class="content_center">
-          <div class="content_title">Select your age</div>
+          <div class="content_title">{{ $t('SelectAge') }}</div>
           <van-picker
             title="标题"
             :show-toolbar="false"
@@ -94,14 +94,14 @@
             ref="agePicker"
           />
         </div>
-        <van-button round block type="info" @click="saveAge">Next</van-button>
+        <van-button round block type="info" @click="saveAge">{{ $t('Next') }}</van-button>
       </div>
       <div v-if="step === 3" class="content">
         <div class="content_center">
           <img class="locate_img" src="../assets/img/ic_h5_graphic_location_permission.png" />
           <div class="locate_desc">
             <div class="text">
-              Access your location permission to check your nearby story
+              {{ $t('Access') }}
             </div>
             <img
               class="locate_switch"
@@ -123,9 +123,9 @@ import axios from 'axios';
 import Conf from '../common/config';
 
 const GENDER_FILTER_LIST = {
-  1: 'Male',
-  2: 'Female',
-  3: 'All',
+  1: this.$t('Male'),
+  2: this.$t('Female'),
+  3: this.$t('All'),
 };
 
 const AGE_FILTER_LIST = {
@@ -135,14 +135,8 @@ const AGE_FILTER_LIST = {
   4: 'All',
 };
 const LOCATE_FILTER_LIST = {
-  1: 'Yes',
-  2: 'Nope',
-};
-
-const SEX_CHOOSE_LIST = {
-  1: 'GIRL',
-  2: 'GUY',
-  3: 'ALL',
+  1: this.$t('Yes'),
+  2: this.$t('Nope'),
 };
 
 export default {
@@ -162,7 +156,6 @@ export default {
       GENDER_FILTER_LIST,
       AGE_FILTER_LIST,
       LOCATE_FILTER_LIST,
-      SEX_CHOOSE_LIST,
       AGE_CHOOSE_LIST: [],
       gender: '3', // default all
       ageRange: '4',
@@ -347,8 +340,6 @@ export default {
         params.user_info.latitude = Number(info.latitude);
         params.user_info.longitude = Number(info.longitude);
       }
-      // TODO delete
-      this.show = false;
       const { data, status } = await axios.post(`${Conf.BASE_URL}/shake.gateway.ShakeGatewayService/UploadProfile`, params);
       if (status === 200 && data.message === 'success') {
         // 更新config;
