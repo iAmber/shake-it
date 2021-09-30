@@ -275,10 +275,8 @@ export default {
             this.updateLocationInfo(this.position);
           } else {
             this.locationFail = true;
+            this.locate = '2';
             Toast(result.message);
-            setTimeout(() => {
-              this.locate = '2';
-            }, 1000);
           }
         }
       }
