@@ -1,6 +1,8 @@
 export default {
   title: 'Shake it now!',
   desc: 'What a coincidence! Shake phone to pair with who shared phone at the same time!',
+  'click-title': 'Click the phone!',
+  'click-desc': 'Click to pair with who want to know you!',
   welcome: 'Wow, your photo looks so chic! Nice to meet u here! ',
   night: 'Which one do you prefer, night or day? ',
   place: 'What’s you favorite place on earth? ',

@@ -1,6 +1,8 @@
 export default {
   title: 'Kocok sekarang!',
   desc: 'Kebetulan banget! Goyangkan ponsel untuk kenalan dengan orang asing yang sedang mengocok ponselnya sekarang',
+  'click-title': 'Click the phone!',
+  'click-desc': 'Click to pair with who want to know you!',
   welcome: 'Wow, fotomu terlihat sangat cantik! Senang bertemu kamu disini!',
   night: 'Kamu lebih suka yang mana, siang atau malam?',
   place: 'Apa tempat favorit Anda di bumi?',

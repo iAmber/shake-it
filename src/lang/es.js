@@ -1,6 +1,8 @@
 export default {
   title: '¡Agítalo ahora!',
   desc: '¡Qué casualidad! ¡Agita el teléfono para enlazarlo con quien compartió el teléfono al mismo tiempo!',
+  'click-title': 'Click the phone!',
+  'click-desc': 'Click to pair with who want to know you!',
   welcome: '¡Wow, tu foto se ve muy elegante! ¡Es un placer encontrarte aquí!',
   night: '¿Qué prefieres, de día o de noche?',
   place: '¿Cuál es tu lugar favorito en la tierra?',

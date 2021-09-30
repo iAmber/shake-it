@@ -6,18 +6,26 @@
         <audio controls src="../assets/mp3/5012.mp3" ref="shakeResult"></audio>
       </div>
       <div class="main-content">
-        <div class="base-image">
+        <div class="base-image" @click="clickMockShake">
           <img src="../assets/img/ic_graphic_shake_phone.png" width="229" height="211">
         </div>
-        <div class="title">
+        <div v-if="supportDeviceMotion" class="title">
           {{ $t('title') }}
         </div>
-        <div class="sub-title">
+        <div v-if="supportDeviceMotion" class="sub-title">
           {{ $t('desc') }}
+        </div>
+        <div v-if="!supportDeviceMotion" class="title">
+          {{ $t('click-title') }}
+        </div>
+        <div v-if="!supportDeviceMotion" class="sub-title">
+          {{ $t('click-desc') }}
         </div>
       </div>
       <div>
-        <router-link :to="`/filters?mobile=${mobile}`">
+        <router-link
+          :to="`/filters?mobile=${mobile}&hasInfo=${hasInfo}&hasLocation=${hasLocation}`"
+        >
           <van-button round block type="info" native-type="submit" class="button-ext">
             {{ $t('tap') }}
           </van-button>
@@ -75,6 +83,7 @@ export default {
   data() {
     return {
       shakeState: 0,
+      supportDeviceMotion: true,
       STATE: {
         INIT: 0,
         SEARCHING: 1,
@@ -103,6 +112,14 @@ export default {
       const { mobile } = this.$route.query;
       return mobile ? String(mobile).replace(/^ /, '+') : '';
     },
+    hasInfo() {
+      const { hasInfo } = this.$route.query;
+      return Number(hasInfo) || 0;
+    },
+    hasLocation() {
+      const { hasLocation } = this.$route.query;
+      return Number(hasLocation) || 0;
+    },
   },
   async mounted() {
     const myShakeEvent = new Shake({
@@ -110,11 +127,14 @@ export default {
       timeout: 500, // optional, determines the frequency of event generation
     });
     myShakeEvent.start();
-    myShakeEvent.hasDeviceMotion = true;
-    window.addEventListener('shake', async () => {
-      await this.shakeEventDidOccur();
-    }, false);
-
+    if (myShakeEvent.hasDeviceMotion) {
+      window.addEventListener('shake', async () => {
+        await this.shakeEventDidOccur();
+      }, false);
+    } else {
+      // 不支持摇一摇
+      this.supportDeviceMotion = false;
+    }
     this.lottie = lottie.loadAnimation({
       container: this.$refs.animationel,
       renderer: 'svg',
@@ -124,6 +144,12 @@ export default {
     await this.getConfig();
   },
   methods: {
+    async clickMockShake() {
+      if (!this.supportDeviceMotion) {
+        // 不支持摇一摇
+        await this.shakeEventDidOccur();
+      }
+    },
     transferAgeToRange(value) {
       const data = this.ageRangeMap[value] || this.ageRangeMap['4'];
       return { startAge: data[0], endAge: data[1] };
@@ -164,7 +190,7 @@ export default {
         mobile: this.mobile,
         app_code: 'fm',
         filter_info: {
-          gender,
+          gender: Number(gender),
           start_age: startAge,
           end_age: endAge,
           enable_location: locate === 1,

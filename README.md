@@ -9,6 +9,13 @@
 5. npm install && npm run build
 6. firebase deploy
 
+
+```
+其他
+```
+语言文件更新
+src/lang/ 目录对应的语言文件json，打开直接更新value即可。
+
 ## Project setup
 ```
 npm install

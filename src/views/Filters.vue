@@ -182,6 +182,14 @@ export default {
       const { mobile } = this.$route.query;
       return mobile ? String(mobile).replace(/^ /, '+') : '';
     },
+    hasInfo() {
+      const { hasInfo } = this.$route.query;
+      return Number(hasInfo) || 0;
+    },
+    hasLocation() {
+      const { hasLocation } = this.$route.query;
+      return Number(hasLocation) || 0;
+    },
   },
   async mounted() {
     this.AGE_CHOOSE_LIST = this.initAgeChooseList();
@@ -234,11 +242,11 @@ export default {
       }
     },
     onCancel() {
-      this.$router.push(`/?mobile=${this.mobile}`);
+      this.$router.push(`/?mobile=${this.mobile}&hasInfo=${this.hasInfo}&hasLocation=${this.hasLocation}`);
     },
     preCheck() {
       // 未更新过userInfo
-      if (this.configData.lastProfileUpdateTime === 0) {
+      if (this.hasInfo === 0 && this.configData.lastProfileUpdateTime === 0) {
         this.show = true;
         return false;
       }
@@ -254,7 +262,9 @@ export default {
         }
         if (+this.locate === 1) { // Yes
           // if info.location exsit, do nothing
-          if (this.configData.hasLocation || this.saveLocationInfo) return;
+          if (this.hasLocation === 1 || this.configData.hasLocation || this.saveLocationInfo) {
+            return;
+          }
           // get geolocation
           const result = await this.getGeoLocation();
           if (result.status) {
