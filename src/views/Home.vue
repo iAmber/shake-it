@@ -71,6 +71,8 @@
 <script>
 import Shake from 'shake.js';
 import lottie from 'lottie-web';
+import { logEvent } from 'firebase/analytics';
+
 import {
   Button, Toast,
 } from 'vant';
@@ -122,6 +124,9 @@ export default {
     },
   },
   async mounted() {
+    // PV打点
+    logEvent(this.analytics, 'hl_shake_surprise');
+
     const myShakeEvent = new Shake({
       threshold: 12, // optional shake strength threshold
       timeout: 500, // optional, determines the frequency of event generation
@@ -205,6 +210,7 @@ export default {
     async shakeEventDidOccur() {
       const { STATE } = this;
       if (this.shakeState !== STATE.SEARCHING) {
+        logEvent(this.analytics, 'hl_shake_trigger');
         this.shakeState = STATE.SEARCHING;
         // 播放音频
         const audio = this.$refs.shakeAudio;
@@ -224,6 +230,9 @@ export default {
             const mobile = await this.checkResult();
             if (mobile) {
               // 播放音效和震动， 500ms之后唤起native;
+              logEvent(this.analytics, 'hl_shake_result', {
+                state: 'find',
+              });
               this.hasResult();
               setTimeout(() => {
                 this.callNative(mobile);
@@ -231,6 +240,9 @@ export default {
                 this.shakeState = STATE.INIT;
               }, 500);
             } else {
+              logEvent(this.analytics, 'hl_shake_result', {
+                state: 'no_find',
+              });
               this.lottie.pause();
               this.shakeState = STATE.EMPTY;
             }
